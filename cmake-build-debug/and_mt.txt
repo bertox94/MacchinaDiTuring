@@ -1,0 +1,12 @@
+B,Read0,Halt
+B
+Halt
+
+B,0->_,Read0,>
+B,1->_,B,>
+B,_->1,Halt,-
+
+Read0,0->_,Read0,>
+Read0,1->_,Read0,>
+Read0,_->0,Halt,-
+
