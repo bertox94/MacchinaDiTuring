@@ -21,6 +21,7 @@
 #define MAX_NOME_FILE 25
 #define MAX_TRANSIZIONI 250
 #define BORDERS 1
+#define SEC_BETWEEN_TRANSITION 0
 
 typedef struct transizione {
     char stato_corrente[MAX_LEN_STATO];
@@ -41,8 +42,8 @@ int num_stati_finali = 0;
 int num_transizioni = 0;
 int posizione_testina = 0;
 transizione transizioni[MAX_TRANSIZIONI];
-size_t beg = LEN_NASTRO - 1;
-size_t end = 0;
+size_t beg;
+size_t end;
 
 void stampa_stato() {
     for (int i = 0; i < num_stati; i++) {
@@ -113,6 +114,7 @@ void inizializza_mt(const char nome_file[]) {
 
     // 1. Lettura tutti gli stati
     if (fgets(line, sizeof(line), f)) {
+        //rimuovi spazi
         parse_states(line, stati, &num_stati);
     }
 
@@ -246,6 +248,8 @@ int main() {
     while (fgets(line, sizeof(line), f_in)) {
         // verificare con input vuoto...
         memset(nastro, '_', LEN_NASTRO);
+        beg = LEN_NASTRO - 1;
+        end = 0;
         // Troviamo dove finisce la stringa pulita escludendo \r e \n
         size_t len = strcspn(line, "\r\n");
         line[len] = '\0';
@@ -269,7 +273,7 @@ int main() {
             stampa_nastro();
             transition();
             printf("\n");
-            sleep(1);
+            sleep(SEC_BETWEEN_TRANSITION);
         }
 
         stampa_stato();
@@ -292,7 +296,7 @@ int main() {
         fflush(f_out);
         printf("\nEsito: %c\n", verdetto);
         printf("******************\n\n");
-        sleep(2);
+        sleep(SEC_BETWEEN_TRANSITION + 1);
     }
 
     fclose(f_in);
