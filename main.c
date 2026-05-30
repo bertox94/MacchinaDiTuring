@@ -288,7 +288,7 @@ int main() {
         char dest[LEN_NASTRO + 1];
         size_t b = 0, e = LEN_NASTRO - 1;
         while (nastro[b] == '_') b++;
-        while (nastro[e] == '_') e--;
+        while (nastro[e] == '_' && e>0) e--;
         if (b > e) b = e = posizione_testina;
         strncpy(dest, nastro + b, e-b+1);
         dest[e - b + 1] = '\0';
