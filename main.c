@@ -22,7 +22,7 @@
 #define MAX_NOME_FILE 25
 #define MAX_TRANSIZIONI 250
 #define BORDERS 1
-#define SEC_BETWEEN_TRANSITION 0
+#define SEC_BETWEEN_TRANSITION 1
 
 typedef struct transizione {
     char stato_corrente[MAX_LEN_STATO];
@@ -93,6 +93,16 @@ void stampa_nastro() {
     fflush(stdout);
 }
 
+void remove_whitespaces(char line[]) {
+    int non_space = 0;
+    for (int i = 0; line[i] != '\0'; i++) {
+        if (line[i] != ' ' && line[i] != '\t') {
+            line[non_space++] = line[i];
+        }
+    }
+    line[non_space] = '\0';
+}
+
 void parse_states(char *line, char target_array[MAX_STATI][MAX_LEN_STATO], int *count) {
     int k = 0;
     char *token = strtok(line, ",\r\n");
@@ -119,12 +129,13 @@ void inizializza_mt(const char nome_file[]) {
 
     // 1. Lettura tutti gli stati
     if (fgets(line, sizeof(line), f)) {
-        //rimuovi spazi
+        remove_whitespaces(line);
         parse_states(line, stati, &num_stati);
     }
 
     // 2. Lettura stato iniziale
     if (fgets(line, sizeof(line), f)) {
+        remove_whitespaces(line);
         line[strcspn(line, "\r\n")] = '\0';
         strncpy(stato_iniziale, line, MAX_LEN_STATO - 1);
         stato_iniziale[MAX_LEN_STATO - 1] = '\0';
@@ -133,21 +144,14 @@ void inizializza_mt(const char nome_file[]) {
 
     // 3. Lettura stati finali
     if (fgets(line, sizeof(line), f)) {
+        remove_whitespaces(line);
         parse_states(line, stati_finali, &num_stati_finali);
     }
 
     // 4. Lettura transizioni
     int k = 0;
     while (fgets(line, sizeof(line), f) != NULL && k < MAX_TRANSIZIONI) {
-        // Rimuovi spazi bianchi fastidiosi (compresi quelli tra virgole)
-        int non_space = 0;
-        for (int i = 0; line[i] != '\0'; i++) {
-            if (line[i] != ' ' && line[i] != '\t') {
-                line[non_space++] = line[i];
-            }
-        }
-        line[non_space] = '\0';
-
+        remove_whitespaces(line);
         // Salta righe vuote
         if (line[0] == '\0' || line[0] == '\n' || line[0] == '\r') continue;
 
@@ -293,7 +297,7 @@ int main() {
         char dest[LEN_NASTRO + 1];
         size_t b = 0, e = LEN_NASTRO - 1;
         while (nastro[b] == '_') b++;
-        while (nastro[e] == '_' && e>0) e--;
+        while (nastro[e] == '_' && e > 0) e--;
         if (b > e) b = e = posizione_testina;
         strncpy(dest, nastro + b, e-b+1);
         dest[e - b + 1] = '\0';
