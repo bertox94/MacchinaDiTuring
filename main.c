@@ -255,7 +255,6 @@ int main() {
     char line[LEN_NASTRO];
 
     while (fgets(line, sizeof(line), f_in)) {
-        // verificare con input vuoto...
         memset(nastro, '_', LEN_NASTRO);
         beg = LEN_NASTRO - 1;
         end = 0;
@@ -271,7 +270,7 @@ int main() {
         // Inizializziamo la testina e copiamo l'input sul nastro
         posizione_testina = (LEN_NASTRO / 2) - (len / 2);
         memcpy(&nastro[posizione_testina], line, len);
-        printf("Input: %s\n", line);
+        printf("Input: \"%s\"\n", line);
 
         // Ripristiniamo lo stato iniziale della macchina prima di calcolare
         strcpy(stato_corrente, stato_iniziale);
