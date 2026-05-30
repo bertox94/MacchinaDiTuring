@@ -45,6 +45,7 @@ transizione transizioni[MAX_TRANSIZIONI];
 size_t beg;
 size_t end;
 
+
 void stampa_stato() {
     for (int i = 0; i < num_stati; i++) {
         if (strcmp(stato_corrente, stati[i]) == 0) {
