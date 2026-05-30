@@ -14,6 +14,7 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) > (b) ? (b) : (a))
 
+// define
 #define MAX_STATI 200
 #define MAX_LEN_STATO 10
 #define LEN_NASTRO 999
