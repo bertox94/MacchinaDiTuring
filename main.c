@@ -46,6 +46,8 @@ transizione transizioni[MAX_TRANSIZIONI];
 size_t beg;
 size_t end;
 
+// Questa funzione stampa lo stato corrente evidenziato
+// e gli altri normali
 void stampa_stato() {
     for (int i = 0; i < num_stati; i++) {
         if (strcmp(stato_corrente, stati[i]) == 0) {
@@ -58,6 +60,8 @@ void stampa_stato() {
     fflush(stdout);
 }
 
+// Scorre il nastro dall'inizio finché non viene trovato un carattere vuoto
+// Trova l'inizio e la fine dei caratteri del nastro
 void inizio_fine_nastro() {
     int _beg = 0;
     while (_beg < LEN_NASTRO && nastro[_beg + BORDERS] == '_'
