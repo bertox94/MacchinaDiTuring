@@ -192,6 +192,21 @@ void inizializza_mt(const char nome_file[]) {
     fclose(f);
 }
 
+void inizializza_input_output(const char nomefile[], FILE **f_in, FILE **f_out) {
+    char filename_in[MAX_NOME_FILE + 12];
+    char filename_out[MAX_NOME_FILE + 13];
+    snprintf(filename_in, sizeof(filename_in), "%s_input.txt", nomefile);
+    snprintf(filename_out, sizeof(filename_out), "%s_output.txt", nomefile);
+
+    *f_in = fopen(filename_in, "r");
+    *f_out = fopen(filename_out, "w"); // File nuovo e pulito
+
+    if (*f_in == NULL || *f_out == NULL) {
+        fprintf(stderr, "Errore apertura file\n");
+        exit(-1);
+    }
+}
+
 int accetta() {
     for (int i = 0; i < num_stati_finali; i++) {
         if (strcmp(stati_finali[i], stato_corrente) == 0)
@@ -229,6 +244,40 @@ void transition() {
     }
 }
 
+void initialize_tape_with_input(char line[]) {
+    memset(nastro, '_', LEN_NASTRO);
+    beg = LEN_NASTRO - 1;
+    end = 0;
+    // Troviamo dove finisce la stringa pulita escludendo \r e \n
+    size_t len = strcspn(line, "\r\n");
+    line[len] = '\0';
+    if (len >= LEN_NASTRO) {
+        fprintf(stderr, "Tentativo di scrivere input di lunghezza: %lu su un nastro di lunghezza: %d\n", len - 1,
+                LEN_NASTRO);
+        exit(-1);
+    }
+
+    // Inizializziamo la testina e copiamo l'input sul nastro
+    posizione_testina = (LEN_NASTRO / 2) - (len / 2);
+    memcpy(&nastro[posizione_testina], line, len);
+    printf("Input: \"%s\"\n", line);
+}
+
+void write_output_data(FILE *f_out, char line[999]) {
+    char dest[LEN_NASTRO + 1];
+    size_t b = 0, e = LEN_NASTRO - 1;
+    while (nastro[b] == '_') b++;
+    while (nastro[e] == '_' && e > 0) e--;
+    if (b > e) b = e = posizione_testina;
+    strncpy(dest, nastro + b, e-b+1);
+    dest[e - b + 1] = '\0';
+    char verdetto = accetta() ? 'A' : 'R';
+    fprintf(f_out, "%s %s %c\n", line, dest, verdetto);
+    fflush(f_out);
+    printf("\nEsito: %c\n", verdetto);
+    printf("******************\n\n");
+}
+
 int main() {
     printf("La macchina di Turing\n\n");
 
@@ -238,39 +287,13 @@ int main() {
     nomefile[strlen(nomefile) - 1] = '\0';
 
     inizializza_mt(nomefile);
-
-    char filename_in[MAX_NOME_FILE + 12];
-    char filename_out[MAX_NOME_FILE + 13];
-    snprintf(filename_in, sizeof(filename_in), "%s_input.txt", nomefile);
-    snprintf(filename_out, sizeof(filename_out), "%s_output.txt", nomefile);
-
-    FILE *f_in = fopen(filename_in, "r");
-    FILE *f_out = fopen(filename_out, "w"); // File nuovo e pulito
-
-    if (f_in == NULL || f_out == NULL) {
-        fprintf(stderr, "Errore apertura file\n");
-        exit(-1);
-    }
+    FILE *f_in, *f_out;
+    inizializza_input_output(nomefile, &f_in, &f_out);
 
     char line[LEN_NASTRO];
 
     while (fgets(line, sizeof(line), f_in)) {
-        memset(nastro, '_', LEN_NASTRO);
-        beg = LEN_NASTRO - 1;
-        end = 0;
-        // Troviamo dove finisce la stringa pulita escludendo \r e \n
-        size_t len = strcspn(line, "\r\n");
-        line[len] = '\0';
-        if (len >= LEN_NASTRO) {
-            fprintf(stderr, "Tentativo di scrivere input di lunghezza: %lu su un nastro di lunghezza: %d\n", len - 1,
-                    LEN_NASTRO);
-            exit(-1);
-        }
-
-        // Inizializziamo la testina e copiamo l'input sul nastro
-        posizione_testina = (LEN_NASTRO / 2) - (len / 2);
-        memcpy(&nastro[posizione_testina], line, len);
-        printf("Input: \"%s\"\n", line);
+        initialize_tape_with_input(line);
 
         // Ripristiniamo lo stato iniziale della macchina prima di calcolare
         strcpy(stato_corrente, stato_iniziale);
@@ -279,31 +302,14 @@ int main() {
         while (!termina()) {
             stampa_stato();
             stampa_nastro();
-            transition();
             printf("\n");
+            transition();
             sleep(SEC_BETWEEN_TRANSITION);
         }
 
         stampa_stato();
         stampa_nastro();
-
-        // Isoli l'input eliminando il \n
-        line[len] = '\0';
-
-        // Scrivi l'input iniziale + verdetto nel file di OUTPUT
-        char verdetto = accetta() ? 'A' : 'R';
-
-        char dest[LEN_NASTRO + 1];
-        size_t b = 0, e = LEN_NASTRO - 1;
-        while (nastro[b] == '_') b++;
-        while (nastro[e] == '_' && e > 0) e--;
-        if (b > e) b = e = posizione_testina;
-        strncpy(dest, nastro + b, e-b+1);
-        dest[e - b + 1] = '\0';
-        fprintf(f_out, "%s %s %c\n", line, dest, verdetto);
-        fflush(f_out);
-        printf("\nEsito: %c\n", verdetto);
-        printf("******************\n\n");
+        write_output_data(f_out, line);
         sleep(SEC_BETWEEN_TRANSITION + 1);
     }
 
